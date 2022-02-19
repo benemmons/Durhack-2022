@@ -26,4 +26,58 @@ exports.editProfile = functions.region("europe-west2").https.onRequest((req, res
 	})
 })
 
-exports.
+exports.addAttributes = functions.region("europe-west2").https.onRequest((req, res) => {
+	cors((req, res) => {
+		var uID = req.body.uID;
+
+		var data = req.body.attributes; 
+
+		dbUsers.doc(uID).set({
+			"attributes": data
+		}, {merge = true})
+	})
+})
+
+exports.getCandiadates = functions.region("europe-west2").https.onRequest((req, res) => {
+	cors((req, res) => {
+		var unique;
+		while (unique != true) {
+			var data = {
+				"user1": randomRecord(),
+				"user2": randomRecord()
+			}
+			if (data.user1 != data.user2) {unique = true}
+		}
+
+		res.status(200).send(data)
+	})
+})
+
+function randomRecord() {
+	var key = dbUsers.doc().id;
+
+	dbUsers.where(admin.firestore.FieldPath.documentId(), '>=', key).limit(1).get()
+	.then(snapshot => {
+		if(snapshot.size > 0) {
+			snapshot.forEach(doc => {
+				console.log(doc.id, '=>', doc.data());
+				return doc;
+			});
+		}
+		else {
+			var user = dbUsers.where(admin.firestore.FieldPath.documentId(), '<', key).limit(1).get()
+			.then(snapshot => {
+				snapshot.forEach(doc => {
+					console.log(doc.id, '=>', doc.data());
+					return doc;
+				});
+			})
+			.catch(err => {
+				console.log('Error getting documents', err);
+			});
+		}
+	})
+	.catch(err => {
+		console.log('Error getting documents', err);
+	});
+}
