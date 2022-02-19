@@ -23,6 +23,7 @@ exports.editProfile = functions.region("europe-west2").https.onRequest((req, res
 		};
 
 		dbUsers.doc(uID).set(data, {merge: true})
+		res.status(200).send()
 	})
 })
 
@@ -35,6 +36,7 @@ exports.addAttributes = functions.region("europe-west2").https.onRequest((req, r
 		dbUsers.doc(uID).set({
 			"attributes": data
 		}, {merge = true})
+		res.status(200).send()
 	})
 })
 
