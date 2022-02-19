@@ -51,6 +51,30 @@ exports.getCandiadates = functions.region("europe-west2").https.onRequest((req, 
 
 		res.status(200).send(data)
 	})
+});
+
+exports.sendVote = functions.region("europe-west2").https.onRequest((req, res) => {
+	cors((req, res) => {
+		var uId = req.body.uId;
+		const doc = await dbUsers.doc(uID).get()
+		if (!doc.exists) {
+			console.error("No such user!");
+		} else {
+			if (req.body.vote == "yes") {
+				dbUsers.doc(uID).set({
+					"yesVotes": doc.data().yesVotes + 1
+				}, {merge = true})
+			} else if (req.body.vote == "no") {
+				dbUsers.doc(uID).set({
+					"noVotes": doc.data().noVotes + 1
+				}, {merge = true})
+			} else {
+				res.status(500)
+				return;
+			}
+		}
+		res.status(200)
+	})
 })
 
 function randomRecord() {
