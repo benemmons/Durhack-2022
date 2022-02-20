@@ -9,7 +9,7 @@ const db = admin.firestore();
 var dbUsers = db.collection("users");
 var dbAttr = db.collection("attributes");
 
-exports.editProfile = functions.region("europe-west2").https.onRequest((req, res) => {
+exports.editProfile = functions.region("europe-west2").https.onRequest(() => {
 	cors((req, res) => {
 		var uID = req.body.uID;
 		var b = req.body;
@@ -27,7 +27,7 @@ exports.editProfile = functions.region("europe-west2").https.onRequest((req, res
 	})
 })
 
-exports.addAttributes = functions.region("europe-west2").https.onRequest((req, res) => {
+exports.addAttributes = functions.region("europe-west2").https.onRequest(() => {
 	cors((req, res) => {
 		var uID = req.body.uID;
 
@@ -35,12 +35,12 @@ exports.addAttributes = functions.region("europe-west2").https.onRequest((req, r
 
 		dbUsers.doc(uID).set({
 			"attributes": data
-		}, {merge = true})
+		}, {merge: true})
 		res.status(200).send()
 	})
 })
 
-exports.getCandiadates = functions.region("europe-west2").https.onRequest((req, res) => {
+exports.getCandiadates = functions.region("europe-west2").https.onRequest(() => {
 	cors((req, res) => {
 		var unique;
 		while (unique != true) {
@@ -55,8 +55,8 @@ exports.getCandiadates = functions.region("europe-west2").https.onRequest((req, 
 	})
 });
 
-exports.sendVote = functions.region("europe-west2").https.onRequest((req, res) => {
-	cors((req, res) => {
+exports.sendVote = functions.region("europe-west2").https.onRequest(() => {
+	cors(async (req, res) =>  {
 		var uId = req.body.uId;
 		const doc = await dbUsers.doc(uID).get()
 		if (!doc.exists) {
@@ -65,11 +65,11 @@ exports.sendVote = functions.region("europe-west2").https.onRequest((req, res) =
 			if (req.body.vote == "yes") {
 				dbUsers.doc(uID).set({
 					"yesVotes": doc.data().yesVotes + 1
-				}, {merge = true})
+				}, {merge: true})
 			} else if (req.body.vote == "no") {
 				dbUsers.doc(uID).set({
 					"noVotes": doc.data().noVotes + 1
-				}, {merge = true})
+				}, {merge: true})
 			} else {
 				res.status(500)
 				return;
@@ -82,28 +82,28 @@ exports.sendVote = functions.region("europe-west2").https.onRequest((req, res) =
 function randomRecord() {
 	var key = dbUsers.doc().id;
 
-	dbUsers.where(admin.firestore.FieldPath.documentId(), '>=', key).limit(1).get()
-	.then(snapshot => {
-		if(snapshot.size > 0) {
-			snapshot.forEach(doc => {
-				console.log(doc.id, '=>', doc.data());
-				return doc;
-			});
-		}
-		else {
-			var user = dbUsers.where(admin.firestore.FieldPath.documentId(), '<', key).limit(1).get()
-			.then(snapshot => {
+	dbUsers.where(admin.firestore.FieldPath.documentId(), ">=", key).limit(1).get()
+		.then(snapshot => {
+			if(snapshot.size > 0) {
 				snapshot.forEach(doc => {
-					console.log(doc.id, '=>', doc.data());
+					console.log(doc.id, "=>", doc.data());
 					return doc;
 				});
-			})
-			.catch(err => {
-				console.log('Error getting documents', err);
-			});
-		}
-	})
-	.catch(err => {
-		console.log('Error getting documents', err);
-	});
+			}
+			else {
+				var user = dbUsers.where(admin.firestore.FieldPath.documentId(), "<", key).limit(1).get()
+					.then(snapshot => {
+						snapshot.forEach(doc => {
+							console.log(doc.id, "=>", doc.data());
+							return doc;
+						});
+					})
+					.catch(err => {
+						console.log("Error getting documents", err);
+					});
+			}
+		})
+		.catch(err => {
+			console.log("Error getting documents", err);
+		});
 }
